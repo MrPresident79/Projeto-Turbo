@@ -7,7 +7,7 @@ const realCode = readFileSync(".local-activation-code", "utf8").trim();
 assert.match(realCode, /^\d{12}$/);
 assert.match(values.EMERGENCY_ACCESS_CODE, /^\d{12}$/);
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
-const server = spawn(npx, ["wrangler", "dev", "--local", "--port", "8787"], { stdio: ["ignore", "pipe", "pipe"] });
+const server = spawn(npx, ["wrangler", "dev", "--local", "--port", "8787"], { stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32" });
 let logs = "";
 server.stdout.on("data", (buffer) => { logs += buffer.toString(); });
 server.stderr.on("data", (buffer) => { logs += buffer.toString(); });
@@ -16,7 +16,8 @@ async function request(path, body, cookie) {
   const result = await fetch(origin + path, {
     method: body === undefined ? "GET" : "POST",
     headers: { ...(body === undefined ? {} : { "content-type": "application/json" }), ...(cookie ? { cookie } : {}) },
-    body: body === undefined ? undefined : JSON.stringify(body)
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(7000)
   });
   return { response: result, data: await result.json(), cookie: result.headers.get("set-cookie")?.split(";")[0] };
 }
@@ -31,6 +32,7 @@ try {
     await delay(600);
   }
   if (!ready) throw Error("Worker não ficou disponível: " + logs.slice(-2000));
+  console.log("Worker local e banco D1 respondendo.");
   const guest = await request("/api/catalog");
   assert.equal(guest.response.status, 401, "Não autenticados não podem ler catálogo");
   const minted = await request("/api/activate", { code: realCode });
@@ -66,7 +68,14 @@ try {
   console.error(logs.slice(-5000));
   process.exitCode = 1;
 } finally {
-  server.kill("SIGTERM");
+  if (process.platform !== "win32" && server.pid) {
+    try { process.kill(-server.pid, "SIGTERM"); } catch {}
+  } else { server.kill("SIGTERM"); }
   await delay(500);
-  if (server.exitCode === null) server.kill("SIGKILL");
+  if (server.exitCode === null) {
+    if (process.platform !== "win32" && server.pid) { try { process.kill(-server.pid, "SIGKILL"); } catch {} }
+    else server.kill("SIGKILL");
+  }
+  server.stdout.destroy();
+  server.stderr.destroy();
 }
