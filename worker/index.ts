@@ -78,7 +78,7 @@ async function issueSession(env: Env, userId: string, request: Request) {
 }
 
 async function currentUser(request: Request, env: Env): Promise<UserRecord | null> {
-  const token = request.headers.get("cookie")?.match(/(?:^|;\\s*)turbo_session=([a-f0-9]{64})(?:;|$)/)?.[1];
+  const token = request.headers.get("cookie")?.match(/(?:^|;\s*)turbo_session=([a-f0-9]{64})(?:;|$)/)?.[1];
   if (!token) return null;
   return await env.DB.prepare(
     "SELECT users.id,users.name FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?"
@@ -134,7 +134,7 @@ async function catalog(env: Env, userId: string) {
 }
 
 async function adminAuthorized(request: Request, env: Env) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") || "";
+  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
   if (!env.ADMIN_API_TOKEN || !token) return false;
   const [a, b] = await Promise.all([sha256(token), sha256(env.ADMIN_API_TOKEN)]);
   return a === b;
@@ -175,7 +175,7 @@ export default {
               "INSERT OR IGNORE INTO access_codes (code_hash,note,issued_at) VALUES (?,?,?)"
             ).bind(codeHash, note, now()).run();
             if (save.meta.changes === 1) {
-              result.push(code.replace(/(\\d{4})(\\d{4})(\\d{4})/, "$1-$2-$3"));
+              result.push(code.replace(/(\d{4})(\d{4})(\d{4})/, "$1-$2-$3"));
               break;
             }
           }
@@ -190,8 +190,8 @@ export default {
         const key = await guardAttempt(request, env, "activate");
         if (!key) return err("Muitas tentativas. Tente novamente em 15 minutos.", 429, "RATE_LIMIT");
         const input = await bodyOf(request);
-        const code = String(input.code || "").replace(/\\D/g, "");
-        if (!/^\\d{12}$/.test(code)) return err("Insira os 12 números do seu código.");
+        const code = String(input.code || "").replace(/\D/g, "");
+        if (!/^\d{12}$/.test(code)) return err("Insira os 12 números do seu código.");
         const codeHash = await sign(`access:${code}`, env.CODE_PEPPER);
         const access = await env.DB.prepare(
           "SELECT code_hash FROM access_codes WHERE code_hash=? AND redeemed_at IS NULL"
@@ -244,8 +244,8 @@ export default {
       if (url.pathname === "/api/me" && !mutating) return json({ user });
       if (url.pathname === "/api/profile" && mutating) {
         const input = await bodyOf(request);
-        const name = String(input.name || "").trim().replace(/\\s+/g, " ");
-        if (!/^[\\p{L}][\\p{L}\\p{M}\\s'-]{0,39}$/u.test(name)) {
+        const name = String(input.name || "").trim().replace(/\s+/g, " ");
+        if (!/^[\p{L}][\p{L}\p{M}\s'-]{0,39}$/u.test(name)) {
           return err("Informe um nome válido de até 40 caracteres.");
         }
         await env.DB.prepare("UPDATE users SET name=?,updated_at=? WHERE id=?")
@@ -253,7 +253,7 @@ export default {
         return json({ user: { ...user, name } });
       }
       if (url.pathname === "/api/logout" && mutating) {
-        const token = request.headers.get("cookie")?.match(/(?:^|;\\s*)turbo_session=([a-f0-9]{64})(?:;|$)/)?.[1];
+        const token = request.headers.get("cookie")?.match(/(?:^|;\s*)turbo_session=([a-f0-9]{64})(?:;|$)/)?.[1];
         if (token) await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await sha256(token)).run();
         return json({ ok: true }, 200, { "Set-Cookie": sessionCookie("", request, 0) });
       }
@@ -267,7 +267,7 @@ export default {
         if (!overview.modules.some((m) => m.lessons.some((l) => l.id === id && l.unlocked))) {
           return err("Complete as etapas anteriores para liberar esta aula.", 403, "LOCKED");
         }
-        return json({ lesson: item });
+        return json({ lesson: { ...item, question: { prompt: item.question.prompt, options: item.question.options } } });
       }
       if (url.pathname === "/api/complete" && mutating) {
         const input = await bodyOf(request);
