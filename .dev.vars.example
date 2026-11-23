@@ -1,0 +1,4 @@
+# Copy to .dev.vars (never commit real values).
+# Use different secrets in production via: npx wrangler secret put NAME
+CODE_PEPPER=replace-with-a-long-random-secret-32-bytes-or-more
+ADMIN_API_TOKEN=replace-with-an-independent-long-random-admin-token
