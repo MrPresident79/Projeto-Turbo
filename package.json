@@ -14,7 +14,8 @@
     "db:remote": "wrangler d1 migrations apply projeto-turbo --remote",
     "deploy": "npm run build && wrangler deploy",
     "setup:local": "node scripts/setup-local.mjs",
-    "smoke:local": "node scripts/smoke-local.mjs"
+    "smoke:local": "node scripts/smoke-local.mjs",
+    "setup:cloud": "node scripts/setup-cloud.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

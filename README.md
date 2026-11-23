@@ -157,6 +157,22 @@ O GitHub Actions executa instalação, testes de TypeScript, build e um teste re
 
 Áudios e vídeos de YouTube/MyInstants não estão automaticamente liberados para redistribuição comercial. O aplicativo não publica gravações sem autorização/licença. Conteúdo sobre drift é teórico e destinado a ambiente controlado; modificações mecânicas requerem inspeção especializada.
 
+## Publicação assistida em uma única etapa
+
+Se você tem uma conta Cloudflare autenticada no computador, o projeto agora oferece um comando de implantação que cria um **novo banco D1**, aplica migrações, gera segredos independentes de produção, envia o Worker, e gera um código comercial real e um **código fixo de demonstração**:
+
+```bash
+npm install
+npx wrangler login
+npm run setup:cloud
+```
+
+O comando imprime os dois códigos e o endereço da publicação. **Os dois códigos só funcionam após a implantação ter sido concluída na sua conta.** O código de emergência é reutilizável, mas acessa exclusivamente a conta compartilhada "Piloto Demo"; não concede acesso de administrador ou de clientes. Para o proprietário emitir mais códigos, existe `POST /api/admin/codes` protegido pelo token de administração guardado em `.prod.secrets.json`.
+
+Os arquivos `.prod.secrets.json` e `.prod-activation-code` são excluídos do Git. Faça backup dos segredos em um cofre. Se um banco remoto já existir e os segredos originais não estiverem presentes, o script interrompe a operação para evitar perder o acesso dos usuários.
+
+**O GitHub conectado ao chat não fornece acesso autenticado à Cloudflare:** este comando precisa rodar em um ambiente onde o titular da conta tenha autorizado a Cloudflare. Não coloque tokens ou senhas em mensagens públicas, commits ou capturas de tela.
+
 ## Limitação de publicação
 
 O repositório está completo para execução local, mas **a publicação real depende de acesso à sua conta Cloudflare**. Sem acesso à conta não é possível criar o banco D1 remoto, definir secrets no Worker ou disponibilizar um URL real de produção. Não há senha ou código remoto ativo enquanto o backend não estiver implantado. Para produção, o código de emergência deve ser definido como segredo **diferente** do usado em ambiente local e deve abrir somente a conta de demonstração.

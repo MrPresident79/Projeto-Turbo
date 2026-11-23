@@ -15,5 +15,6 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
+      - run: node --check scripts/setup-cloud.mjs
       - run: npm run setup:local
       - run: timeout 95s npm run smoke:local

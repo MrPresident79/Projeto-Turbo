@@ -9,3 +9,6 @@ dist/
 coverage/
 
 .local-activation-code
+
+.prod.secrets.json
+.prod-activation-code
