@@ -18,25 +18,7 @@ for (const [key, value] of Object.entries({
 })) {
   if (!config[key] || config[key].startsWith("replace-with-")) {
     const generated = value();
-    const existing = new RegExp(`^${key}=.*import { createHmac, randomBytes, randomInt } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-
-const varsPath = ".dev.vars";
-const makeCode = () => Array.from({ length: 12 }, () => String(randomInt(10))).join("");
-const format = (value) => value.match(/.{4}/g).join("-");
-const parse = (source) => Object.fromEntries(source.split(/\r?\n/).filter((line) => /^[A-Z_]+=/.test(line))
-  .map((line) => { const idx = line.indexOf("="); return [line.slice(0, idx), line.slice(idx + 1).trim()]; }));
-
-let content = existsSync(varsPath) ? readFileSync(varsPath, "utf8") : "";
-let config = parse(content);
-let modified = !existsSync(varsPath);
-for (const [key, value] of Object.entries({
-  CODE_PEPPER: () => randomBytes(48).toString("hex"),
-  ADMIN_API_TOKEN: () => randomBytes(48).toString("hex"),
-  EMERGENCY_ACCESS_CODE: makeCode
-})) {
-, "m");
+    const existing = new RegExp(`^${key}=.*$`, "m");
     if (existing.test(content)) content = content.replace(existing, `${key}=${generated}`);
     else content += (content.length && !content.endsWith("\n") ? "\n" : "") + `${key}=${generated}\n`;
     modified = true;
