@@ -40,7 +40,7 @@ npm run setup:local
 - **Código individual**, que funciona uma única vez para testar o fluxo de compra/presente.
 - **Código fixo de emergência**, reutilizável, que entra **somente** no perfil compartilhado "Piloto Demo". Ele não dá acesso a dados, progresso ou ferramentas administrativas de compradores.
 
-O código de emergência é gerado uma vez por ambiente e guardado em `.dev.vars`; não existe código mestre hardcoded no repositório público. O código permanece igual em execuções futuras do setup. Os códigos impressos no terminal devem ser guardados em local seguro e não publicados.
+O código de emergência **local** padrão é `7294-1835-6027` e é guardado em `.dev.vars`; só acessa a conta compartilhada de teste, jamais contas de compradores ou a administração. A **produção** gera automaticamente outro código aleatório mantido em segredo, sem código mestre público. O código permanece igual em execuções futuras do setup. Os códigos impressos no terminal devem ser guardados em local seguro e não publicados.
 
 Inicie dois terminais:
 

