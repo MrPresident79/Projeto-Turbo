@@ -1,3 +1,10 @@
+
+## Estúdio V4 — novo design editorial (23/11/2026)
+
+O **redesign da prévia** está em `demo/index.html`: estilo editorial em tons de papel e grafite, acento cobre, tipografia mais discreta, mapa de capítulos em linhas em vez de cartões azuis, interface responsiva e **saudação de voz desligada por padrão**. O botão de áudio não se aciona automaticamente, pois a qualidade da narração nativa varia conforme o dispositivo.
+
+**Como testar rapidamente:** baixe somente `demo/index.html` ou abra-o no navegador depois de baixar o repositório. Código de demonstração: `7294-1835-6027`. É uma **prévia estática**, que salva o progresso localmente e não substitui a edição comercial protegida por backend/D1.
+
 # Projeto Turbo — Academy
 
 Plataforma web de educação automotiva, pensada para ser oferecida como presente digital exclusivo. **Primeira versão funcional (MVP), ainda não pronta para comercialização em produção.**
