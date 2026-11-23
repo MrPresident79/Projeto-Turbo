@@ -176,3 +176,24 @@ Os arquivos `.prod.secrets.json` e `.prod-activation-code` são excluídos do Gi
 ## Limitação de publicação
 
 O repositório está completo para execução local, mas **a publicação real depende de acesso à sua conta Cloudflare**. Sem acesso à conta não é possível criar o banco D1 remoto, definir secrets no Worker ou disponibilizar um URL real de produção. Não há senha ou código remoto ativo enquanto o backend não estiver implantado. Para produção, o código de emergência deve ser definido como segredo **diferente** do usado em ambiente local e deve abrir somente a conta de demonstração.
+
+## Correção da tela branca e do HTTP 404 no Cloudflare Pages
+
+**Não abra o `index.html` do Vite pelo Explorador de Arquivos.** Ele requer compilação. A partir desta versão, o `index.html` da raiz redireciona para **`demo/index.html`** quando aberto via `file://`. É uma prévia **autossuficiente**, com 15 módulos, 33 aulas, código de demonstração `7294-1835-6027`, laboratório, questionários e progresso **local**. Nenhuma instalação é necessária para demonstrar o visual.
+
+Para fazer upload manual da prévia estática ao Cloudflare Pages, compacte **somente o conteúdo da pasta `demo/`**, deixando o arquivo `index.html` na raiz do ZIP. Não envie o repositório GitHub inteiro como ZIP para Direct Upload.
+
+Para **publicar a aplicação comercial com backend real usando Git Integration** em um projeto Cloudflare Pages:
+
+1. Em **Workers & Pages**, crie (ou abra) um projeto **Pages** conectado a este GitHub, branch `main`.
+2. Em **Build settings**, configure **Framework = React (Vite)**, **Build command = `npm run build`**, **Output directory = `dist`**, diretório raiz = `/`. O Pages precisa publicar o conteúdo gerado em `dist`, não o repositório.
+3. Crie um banco D1 com nome `projeto-turbo` na conta Cloudflare e aplique as migrações de `migrations/0001_initial.sql` pelo console D1 ou Wrangler.
+4. Em **Pages project → Settings → Bindings**, associe o D1 à variável `DB`. O projeto inclui **`functions/api/[[path]].ts`** para servir `/api/*` com o mesmo backend usado em Workers.
+5. Em **Settings → Variables and Secrets**, configure `CODE_PEPPER` e `ADMIN_API_TOKEN`, como segredos aleatórios diferentes, cada um com pelo menos 32 caracteres. Configure `EMERGENCY_ACCESS_CODE` (12 números) **opcionalmente**, apenas para a conta demo; **nunca use na produção o código público da prévia**. Se esses segredos forem rotacionados sem planejamento, os códigos/chaves de recuperação existentes podem parar de funcionar.
+6. Faça **Redeploy** após adicionar os bindings e segredos. Confirme `https://SEU-DOMINIO.pages.dev/api/health`: deve retornar `status: ok`, `database: true`, `configured: true`.
+7. Gere os **códigos comerciais** pelo endpoint de administração `POST /api/admin/codes` com token Bearer `ADMIN_API_TOKEN` (não publique nem coloque o token no frontend), e depois teste uma ativação real na sua URL.
+
+**Importante:** o código `7294-1835-6027` é apenas da prévia independente e do teste local. Não foi criado nenhum código de ativação de produção em seu Cloudflare Pages, pois é preciso autenticação no seu painel. A versão estática é adequada a teste visual, mas não protege o conteúdo como um produto pago e não substitui o login do servidor.
+
+A configuração `wrangler.jsonc` da raiz continua direcionada ao **Worker standalone**. No Pages a aplicação pode usar os bindings configurados no dashboard. Para atualizar o site **sem compilar localmente**, use a integração Git do Cloudflare Pages com as configurações acima. Se houver HTTP 404 após isso, verifique o histórico de deploy do projeto no painel e confirme que `dist/index.html` foi publicado.
+

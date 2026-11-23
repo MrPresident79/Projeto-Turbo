@@ -6,12 +6,23 @@
     <meta name="theme-color" content="#080b0f" />
     <meta name="description" content="Projeto Turbo — uma jornada exclusiva pelo universo automotivo, da primeira marcha à engenharia de alto desempenho." />
     <title>Projeto Turbo — Conhecimento em alta rotação</title>
+    <script>
+      // Opening unbuilt Vite source through file:// is unsupported. Use our standalone demo instead.
+      if (location.protocol === "file:") location.replace(new URL("./demo/index.html", location.href).href);
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;text-align:center;padding:30px;font-family:Arial,sans-serif;background:#090f16;color:#e8f5ff">
+        <div style="color:#50baff;font-weight:900;letter-spacing:.2em">PROJETO TURBO</div>
+        <h1 style="font-size:clamp(24px,4vw,42px);margin:0">Inicializando sua garagem...</h1>
+        <p style="max-width:520px;color:#9cb6c8;line-height:1.8">Se esta mensagem continuar aparecendo, você abriu o código-fonte sem compilá-lo. Para a versão independente, abra <strong>demo/index.html</strong>. Para publicar no Cloudflare Pages, configure <strong>npm run build</strong> e a pasta <strong>dist</strong>.</p>
+        <a href="./demo/index.html" style="display:inline-block;background:#168de0;color:white;padding:13px 18px;text-decoration:none;border-radius:8px;font-weight:700">ABRIR DEMONSTRAÇÃO</a>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
