@@ -28,6 +28,34 @@ O conteúdo atual é uma **trilha introdutória** de cada assunto, não uma enci
 
 Node.js 22+, npm, uma conta Cloudflare e acesso de configuração ao D1.
 
+### Início rápido: cria backend local, banco e códigos automaticamente
+
+```bash
+npm install
+npm run setup:local
+```
+
+**Este comando cria o banco D1 local, executa as migrações, gera segredos em `.dev.vars` e imprime dois códigos:**
+
+- **Código individual**, que funciona uma única vez para testar o fluxo de compra/presente.
+- **Código fixo de emergência**, reutilizável, que entra **somente** no perfil compartilhado "Piloto Demo". Ele não dá acesso a dados, progresso ou ferramentas administrativas de compradores.
+
+O código de emergência é gerado uma vez por ambiente e guardado em `.dev.vars`; não existe código mestre hardcoded no repositório público. O código permanece igual em execuções futuras do setup. Os códigos impressos no terminal devem ser guardados em local seguro e não publicados.
+
+Inicie dois terminais:
+
+```bash
+npm run dev:api
+```
+
+```bash
+npm run dev
+```
+
+Abra `http://localhost:5173` e digite qualquer um dos códigos impressos. **Para verificar o backend automaticamente:** `npm run smoke:local` (esse teste consome o código individual de teste e usa um D1 local).
+
+O acesso de emergência depende de **Worker e D1 funcionando**; ele não é um substituto para backup do banco ou para solucionar uma indisponibilidade de servidor. O modo de demonstração só deve ser ativado publicamente quando você realmente quiser conceder acesso a um perfil de teste compartilhado.
+
 ### Desenvolvimento local
 
 ```bash
@@ -84,6 +112,7 @@ A API administrativa é **somente para operador**. Nunca coloque o token no fron
    ```bash
    npx wrangler secret put CODE_PEPPER
    npx wrangler secret put ADMIN_API_TOKEN
+  npx wrangler secret put EMERGENCY_ACCESS_CODE
    ```
    Os segredos de produção devem ser mantidos de forma segura. **Perder `CODE_PEPPER` invalida os códigos existentes e as chaves de recuperação.**
 4. Execute `npm run db:remote`.
@@ -122,8 +151,12 @@ npm test
 npm run build
 ```
 
-O GitHub Actions executa verificações de TypeScript, testes e build a cada alteração na branch principal. Isso não substitui testes operacionais com banco D1, sessões e navegadores reais.
+O GitHub Actions executa instalação, testes de TypeScript, build e um teste real da API com banco local, incluindo ativação única, login de demonstração, isolamento de conta e salvamento de progresso. Isso não substitui testes operacionais com banco D1, sessões e navegadores reais.
 
 ## Segurança e direitos
 
 Áudios e vídeos de YouTube/MyInstants não estão automaticamente liberados para redistribuição comercial. O aplicativo não publica gravações sem autorização/licença. Conteúdo sobre drift é teórico e destinado a ambiente controlado; modificações mecânicas requerem inspeção especializada.
+
+## Limitação de publicação
+
+O repositório está completo para execução local, mas **a publicação real depende de acesso à sua conta Cloudflare**. Sem acesso à conta não é possível criar o banco D1 remoto, definir secrets no Worker ou disponibilizar um URL real de produção. Não há senha ou código remoto ativo enquanto o backend não estiver implantado. Para produção, o código de emergência deve ser definido como segredo **diferente** do usado em ambiente local e deve abrir somente a conta de demonstração.

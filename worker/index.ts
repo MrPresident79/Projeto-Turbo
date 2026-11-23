@@ -5,11 +5,14 @@ interface Env {
   ASSETS: Fetcher;
   CODE_PEPPER?: string;
   ADMIN_API_TOKEN?: string;
+  EMERGENCY_ACCESS_CODE?: string;
 }
 
 interface UserRecord { id: string; name: string | null }
 type ApiError = { error: string; code?: string };
 const SESSION_AGE = 60 * 24 * 60 * 60;
+// A private, shared, demo-only account. Emergency access never authenticates buyers or administrators.
+const EMERGENCY_DEMO_USER_ID = "00000000-0000-4000-8000-000000000001";
 const encoder = new TextEncoder();
 const hex = (data: Uint8Array) => Array.from(data, (b) => b.toString(16).padStart(2, "0")).join("");
 const now = () => Math.floor(Date.now() / 1000);
@@ -154,7 +157,7 @@ export default {
 
     try {
       if (url.pathname === "/api/health" && !mutating) {
-        return json({ status: "ok", database: Boolean(env.DB), configured: Boolean(env.CODE_PEPPER) });
+        return json({ status: "ok", database: Boolean(env.DB), configured: Boolean(env.CODE_PEPPER && env.CODE_PEPPER.length >= 32) });
       }
       if (!env.CODE_PEPPER || env.CODE_PEPPER.length < 32 || !env.DB) {
         return err("O servidor ainda não está configurado. Verifique os segredos e o banco D1.", 503, "NOT_CONFIGURED");
@@ -190,9 +193,27 @@ export default {
         const key = await guardAttempt(request, env, "activate");
         if (!key) return err("Muitas tentativas. Tente novamente em 15 minutos.", 429, "RATE_LIMIT");
         const input = await bodyOf(request);
-        const code = String(input.code || "").replace(/\D/g, "");
-        if (!/^\d{12}$/.test(code)) return err("Insira os 12 números do seu código.");
+        const code = typeof input.code === "string" ? input.code.replace(/[\s-]/g, "") : "";
+        if (!/^\d{12}$/.test(code)) {
+          await failedAttempt(env, key);
+          return err("Insira os 12 números do seu código.");
+        }
         const codeHash = await sign(`access:${code}`, env.CODE_PEPPER);
+        // Separate support/testing entry: it can access only the demo profile, never buyer data.
+        // Must be provisioned as an environment secret, never embedded in the public bundle.
+        const emergency = env.EMERGENCY_ACCESS_CODE;
+        if (emergency && /^\d{12}$/.test(emergency) &&
+            codeHash === await sign(`access:${emergency}`, env.CODE_PEPPER)) {
+          const recoveryHash = await sign(`demo-account:${EMERGENCY_DEMO_USER_ID}`, env.CODE_PEPPER);
+          await env.DB.prepare(
+            "INSERT OR IGNORE INTO users (id,name,recovery_hash,created_at,updated_at) VALUES (?,?,?,?,?)"
+          ).bind(EMERGENCY_DEMO_USER_ID, "Piloto Demo", recoveryHash, now(), now()).run();
+          const cookie = await issueSession(env, EMERGENCY_DEMO_USER_ID, request);
+          await env.DB.prepare("DELETE FROM rate_limits WHERE key=?").bind(key).run();
+          return json({ activated: true, demo: true,
+            user: { id: EMERGENCY_DEMO_USER_ID, name: "Piloto Demo" } },
+            200, { "Set-Cookie": cookie });
+        }
         const access = await env.DB.prepare(
           "SELECT code_hash FROM access_codes WHERE code_hash=? AND redeemed_at IS NULL"
         ).bind(codeHash).first();
@@ -244,6 +265,7 @@ export default {
       if (url.pathname === "/api/me" && !mutating) return json({ user });
       if (url.pathname === "/api/profile" && mutating) {
         const input = await bodyOf(request);
+        if (user.id === EMERGENCY_DEMO_USER_ID) return err("A conta de demonstração possui um nome fixo.", 403, "DEMO_PROFILE");
         const name = String(input.name || "").trim().replace(/\s+/g, " ");
         if (!/^[\p{L}][\p{L}\p{M}\s'-]{0,39}$/u.test(name)) {
           return err("Informe um nome válido de até 40 caracteres.");

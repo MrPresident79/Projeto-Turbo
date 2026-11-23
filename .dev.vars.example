@@ -1,4 +1,5 @@
-# Copy to .dev.vars (never commit real values).
-# Use different secrets in production via: npx wrangler secret put NAME
+# Copy to .dev.vars or run 'npm run setup:local' to generate safe local values.
 CODE_PEPPER=replace-with-a-long-random-secret-32-bytes-or-more
 ADMIN_API_TOKEN=replace-with-an-independent-long-random-admin-token
+# This optional access code opens ONLY a shared demo profile; never grants admin or buyer access.
+EMERGENCY_ACCESS_CODE=replace-with-12-numeric-digits

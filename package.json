@@ -12,7 +12,9 @@
     "test": "vitest run",
     "db:local": "wrangler d1 migrations apply projeto-turbo --local",
     "db:remote": "wrangler d1 migrations apply projeto-turbo --remote",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "setup:local": "node scripts/setup-local.mjs",
+    "smoke:local": "node scripts/smoke-local.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
